@@ -1,0 +1,84 @@
+<?xml version = "1.0"  encoding="UTF-8"?>
+
+<event>
+	<!-- event_id,username -->
+	<recommendation id="0">
+		<condition>
+			<cvar>username</cvar>
+			<cquery>select b.bid ,b.dynamic_fare,b.source,b.destination,b.doj,recomend.userid,b.available_seats from bus_details b,((select * from wish_list w where w.userid =(select userid from login where username=?) and w.status="WAITING") as recomend)  where b.source =recomend.source and b.destination = recomend.destination and TIMEDIFF(b.doj,current_timestamp) &gt; 0 and b.available_seats>=1 and b.status = "AVAILABLE"</cquery>
+		</condition>
+		<action>
+			<avar>event_id,userid,bid;dynamic_fare;source;destination;available_seats;doj</avar>
+			<aquery> insert into response(eid,userid,r_values) values(?,?,?)</aquery>
+		</action>
+</recommendation>
+
+<!-- event_id,username,source,destination -->
+<add_to_wishlist id="1">
+	<condition>
+		<cvar>username</cvar>
+		<cquery> select userid from login where username=?</cquery>
+	</condition>
+	<action>
+		<avar>userid,source,destination</avar>
+		<aquery>insert into wish_list(userid,source,destination) values(?,?,?)</aquery>
+	</action>
+</add_to_wishlist>
+
+
+<dfare_update id="2">
+	<condition>
+		<cvar></cvar>
+		<cquery> select bid from bus_details where (current_timestamp &gt; date_threshold and current_timestamp &lt; doj) or available_seats &lt; seat_threshold and status = "AVAILABLE"</cquery>
+	</condition>
+	<action>
+		<avar>bid</avar>
+		<aquery>update bus_details set dynamic_fare=dynamic_fare+20 where bid=? </aquery>
+	</action>
+</dfare_update>
+
+<bus_insert id="3">
+	<condition>
+		<cvar></cvar>
+		<cquery> select bid,source,destination,base_fare,seat_threshold from bus_details where available_seats = 0 and status = "AVAILABLE"</cquery>
+	</condition>
+	<action>
+		<avar>source,destination,seat_threshold,base_fare,base_fare</avar>
+		<avar>bid</avar>
+		<aquery>insert bus_details(source,destination,available_seats,seat_threshold,base_fare,dynamic_fare,doj,date_threshold) values(?,?,10,?,?,?,ADDTIME(current_timestamp, "5 2:10:5.000003"),ADDTIME(current_timestamp, "3 2:10:5.000003"))</aquery>
+		<aquery>update bus_details set status = "NOT_AVAILABLE" where bid=?</aquery>
+	</action>
+</bus_insert>
+
+
+<!--event_id,bid,username,pnr-->
+<apply_for_ticket id="4">
+	<condition>
+		<cvar>bid</cvar>
+		<cquery>select source,destination,doj,dynamic_fare from bus_details where bid=? and available_seats>=1 and status = "AVAILABLE"</cquery>
+	</condition>
+	<action>
+		<avar>username,source,destination</avar>
+		<avar>username,bid,dynamic_fare,pnr,doj</avar>
+		<avar>bid</avar>
+		<aquery>update wish_list set status="BOOKED" where userid=(select userid from login where username=? ) and source=? and destination=?</aquery>
+		<aquery>insert into tickets(userid,bid,fare,pnr,doj)values((select userid from login where username=? ),?,?,?,?)</aquery>
+		<aquery>update table bus_details set available_seats = available_seats-1 where bid = ?</aquery>
+	</action>
+</apply_for_ticket>
+
+
+<!-- event_id,username -->
+<display_ticket id="5">
+	<condition>
+		<cvar>username</cvar>
+		<cquery>select b.bid,t.fare,t.pnr,b.source,b.destination,b.doj,t.userid from tickets t,bus_details b  where b.bid = t.bid and  t.userid =(select userid from login where username=?) and TIMEDIFF(b.doj,current_timestamp)&gt; 0</cquery>
+	</condition>
+	<action>
+		<avar>event_id,userid,pnr;bid;fare;source;destination;doj</avar>
+		<aquery>insert into response(eid,userid,r_values) values(?,?,?)</aquery>
+	</action>
+</display_ticket>
+
+
+</event>

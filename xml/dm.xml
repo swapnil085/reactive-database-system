@@ -1,0 +1,12 @@
+<?xml version = "1.0"  encoding="UTF-8"?>
+<event>
+<dynamic_fare id="3">
+<day1>saturday </day1>
+<day2> sunday </day2>
+<journey_date> select doj from bus_journey where id </journey_date>
+<no_of_booking> select count(*) from reservation where bus_id </no_of_booking>
+<default_fare> select fare from bus_journey where id </default_fare>
+</dynamic_fare>
+</event>
+
+

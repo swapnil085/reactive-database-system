@@ -1,0 +1,9 @@
+<?xml version = "1.0"  encoding="UTF-8"?>
+<apply_for_ticket id=1>
+	<condition>
+		<weekend> yes </weekend>
+		<existing_user>yes</existing_user>
+		<threshold>3</threshold>
+		<holiday>yes</holiday>
+	</condition>
+</apply_for_ticket>
